@@ -19,32 +19,81 @@
 
   <dependencies>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>3.8.1</version>
+      <groupId>com.googlecode.json-simple</groupId>
+      <artifactId>json-simple</artifactId>
+      <version>1.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <version>5.9.2</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>5.3.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-junit-jupiter</artifactId>
+      <version>5.3.1</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
   <build>
     <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>2.4</version>
-        <configuration>
-          <archive>
-            <manifest>
-              <mainClass>com.alex.versions_storage.VersionsStorage</mainClass>
-            </manifest>
-          </archive>
-        </configuration>
-      </plugin>
+      <!--Settings of compile our project -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
           <source>17</source>
           <target>17</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <!--Coping dependencies to the folder lib/-->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>2.8</version>
+        <configuration>
+
+          <!--All the dependencies that are necessary for running our app.jar will be here-->
+          <outputDirectory>${project.build.directory}/lib/</outputDirectory>
+          <overWriteReleases>true</overWriteReleases>
+          <overWriteSnapshots>true</overWriteSnapshots>
+          <overWriteIfNewer>true</overWriteIfNewer>
+
+        </configuration>
+        <executions>
+          <execution>
+            <id>copy-dependencies</id>
+            <phase>package</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+          </execution>
+
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.4</version>
+        <configuration>
+          <archive>
+            <!--configure manifest here-->
+            <manifest>
+              <addClasspath>true</addClasspath>
+              <!--Path to the dependencies relatively a running app.jar-->
+              <!--All the dependencies should supply with this app.jar -->
+              <classpathPrefix>lib/</classpathPrefix>
+              <classpathLayoutType>simple</classpathLayoutType>
+              <mainClass>com.alex.versions_storage.VersionsStorage</mainClass>
+            </manifest>
+          </archive>
         </configuration>
       </plugin>
     </plugins>

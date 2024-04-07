@@ -1,8 +1,6 @@
 package com.alex.versions_storage;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
+import java.io.*;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -10,6 +8,7 @@ import java.util.*;
 
 public class RootDir implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 1L;
     private List<AnyFile> files;
     private transient List<Path> pathsDirs;
@@ -19,6 +18,7 @@ public class RootDir implements Serializable {
         this.path=path;
         this.pathsDirs = new ArrayList<>();
         this.files = new ArrayList<>();
+        collectFilesAndDirs(path,(name) -> !name.endsWith(serviceDir));
     }
 
     public boolean equals(Object o) {
@@ -34,7 +34,29 @@ public class RootDir implements Serializable {
         result = result * 31 + (files==null ? 0 : files.hashCode());
         return result;
     }
+    private void collectFilesAndDirs(Path pathDir, DirectoryStream.Filter<Path> filter)throws IOException  {
+        List<Path> tempPaths = new ArrayList<>();
+        try( DirectoryStream<Path> paths = Files.newDirectoryStream(pathDir, filter)){
+            Iterator<Path> iteratorPaths = paths.iterator();
+            while (iteratorPaths.hasNext()) {
+                Path currentPath = iteratorPaths.next();
+                if (Files.isRegularFile(currentPath)) {
+                    files.add(new AnyFile(currentPath));
+                } else {
+                    tempPaths.add(currentPath);
+                }
 
+            }
+        }
+
+        pathsDirs.addAll(tempPaths);
+
+        for (Path path : tempPaths) {
+            collectFilesAndDirs(path, filter);
+        }
+    }
+
+    @Serial
     private void readObject(ObjectInputStream input)throws ClassNotFoundException,IOException {
             input.defaultReadObject();
             path=Path.of((String)input.readObject());
@@ -44,7 +66,7 @@ public class RootDir implements Serializable {
                     .toList();
 
     }
-
+    @Serial
     private void writeObject(ObjectOutputStream output)throws IOException {
             output.defaultWriteObject();
             output.writeObject(path.toString());
