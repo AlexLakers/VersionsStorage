@@ -91,7 +91,7 @@
               <!--All the dependencies should supply with this app.jar -->
               <classpathPrefix>lib/</classpathPrefix>
               <classpathLayoutType>simple</classpathLayoutType>
-              <mainClass>com.alex.versions_storage.VersionsStorage</mainClass>
+              <mainClass>com.alex.versions_storage.Main</mainClass>
             </manifest>
           </archive>
         </configuration>
