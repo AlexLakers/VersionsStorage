@@ -1,6 +1,6 @@
 package com.alex.versions_storage.commands;
 
-import com.alex.versions_storage.StorageManager;
+import com.alex.versions_storage.provider.StorageManager;
 
 import java.io.IOException;
 import java.nio.file.Path;

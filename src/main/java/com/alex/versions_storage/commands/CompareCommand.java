@@ -1,6 +1,6 @@
 package com.alex.versions_storage.commands;
 
-import com.alex.versions_storage.StorageManager;
+import com.alex.versions_storage.provider.StorageManager;
 import org.json.simple.parser.ParseException;
 
 import java.io.IOException;

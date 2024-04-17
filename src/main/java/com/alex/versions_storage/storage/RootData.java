@@ -1,6 +1,6 @@
-package com.alex.versions_storage;
+package com.alex.versions_storage.storage;
 
-import com.alex.versions_storage.utill.IOutill;
+import com.alex.versions_storage.utill.IOUtill;
 
 import java.io.*;
 import java.nio.file.DirectoryStream;
@@ -28,7 +28,7 @@ public class RootData implements Serializable {
         this.version=DEFAULT_VERSION;
 
 
-        collectFilesAndDirs(path, (name) -> !name.endsWith(".VersionsStorage"));
+        collectFilesAndDirsByRecursive(path, (name) -> !name.endsWith(".VersionsStorage"));
     }
     public RootData(Path path,int version)throws IOException{
         this(path);
@@ -87,13 +87,12 @@ public class RootData implements Serializable {
                 .map(Path::toString)
                 .toList();
         output.writeObject(strPathsDir);
-           /* Map<String,byte[]> strFiles=files.entrySet().stream()
-                    .map(file->file.getKey(),)*/
 
 
     }
 
-    private void collectFilesAndDirs(Path pathDir, DirectoryStream.Filter<Path> filter) throws IOException {
+    //This method allows to walk all the directories and collect files and dirs
+    private void collectFilesAndDirsByRecursive(Path pathDir, DirectoryStream.Filter<Path> filter) throws IOException {
         List<Path> tempPaths = new ArrayList<>();
         try (DirectoryStream<Path> paths = Files.newDirectoryStream(pathDir, filter)) {
             Iterator<Path> iteratorPaths = paths.iterator();
@@ -101,7 +100,7 @@ public class RootData implements Serializable {
                 Path path = iteratorPaths.next();
                 if (Files.isRegularFile(path)) {
                     try(InputStream in=Files.newInputStream(path,StandardOpenOption.READ)){
-                        byte[] data=IOutill.readData(in);
+                        byte[] data= IOUtill.readBytes(in,1024);
                         files.put(path.toString(),data);
                     }
 
@@ -115,7 +114,7 @@ public class RootData implements Serializable {
         dirs.addAll(tempPaths);
 
         for (Path path : tempPaths) {
-            collectFilesAndDirs(path, filter);
+            collectFilesAndDirsByRecursive(path, filter);
 
         }
     }

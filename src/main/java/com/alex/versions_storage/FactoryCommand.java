@@ -1,7 +1,6 @@
 package com.alex.versions_storage;
 
 import com.alex.versions_storage.commands.*;
-import com.alex.versions_storage.utill.IOutill;
 
 import java.nio.file.Path;
 
@@ -21,7 +20,8 @@ public  final class FactoryCommand {
                 command = new AddCommand(Path.of(line.split(" ")[0]));
             }
             case RESTORE ->{
-                command=new RestoreCommand(Path.of(line.split(" ")[0]));
+                String[] args =line.split(" ");
+                command=new RestoreCommand(Path.of(args[0]),Integer.parseInt(args[1]));
             }
             case EXIT -> {
              command =new ExitCommand();

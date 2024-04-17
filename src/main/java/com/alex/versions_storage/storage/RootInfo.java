@@ -1,6 +1,5 @@
-
-package com.alex.versions_storage;
-import com.alex.versions_storage.utill.IOutill;
+package com.alex.versions_storage.storage;
+import com.alex.versions_storage.utill.JsonUtill;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
@@ -17,16 +16,16 @@ import java.util.List;
 public class RootInfo {
     private Path rootPath;
     private List<Node> nodes;
-    private Path path;
+
     public static class ConstProps {
-        private static final String VERSION="version";
-        private static final String ROOT_PATH="rootPath";
-        private static final String VERSIONS_INFO="versionsInfo";
-        private static final String HASH_CODE="hashCode";
+        private static final String VERSION = "version";
+        private static final String ROOT_PATH = "rootPath";
+        private static final String VERSIONS_INFO = "versionsInfo";
+        private static final String HASH_CODE = "hashCode";
     }
 
 
-    public RootInfo( Path rootPath) {
+    public RootInfo(Path rootPath) {
         this.rootPath = rootPath;
         nodes = new ArrayList<>();
 
@@ -45,14 +44,14 @@ public class RootInfo {
             return String.format("{\"hashCode\":%1$d,\"version\":%2$d}", hashCode, version);
         }
 
+        private Node parse(JSONObject jNode) {
+            int hash = JsonUtill.getIntProp(jNode, ConstProps.HASH_CODE);
+            int version = JsonUtill.getIntProp(jNode, ConstProps.VERSION);
+            return new Node(hash, version);
+        }
     }
 
-    public Path getPath() {
-        return path;
-    }
-
-
-    public String toJSONString(){
+    public String toJSONString() {
         return String.format("{\"rootPath\":\"%1$s\", \"versionsInfo\":%2$s}", rootPath.toString(), nodes.toString());
     }
 
@@ -61,7 +60,7 @@ public class RootInfo {
     }
 
     public int getLastVersionDir() {
-        return nodes.get(nodes.size()).version;
+        return nodes.get(nodes.size() - 1).version + 1;
     }
 
 
@@ -86,29 +85,35 @@ public class RootInfo {
         }
         return false;
     }
+
     //This method needed to save  the following data: number of version,root path and hashCode to a service JSON-file.
     public void store(Path path) throws IOException {
         try (Writer writer = Files.newBufferedWriter(path)) {
-            IOutill.writeJsonData(writer, this.toJSONString());
+            writer.write(this.toJSONString());
         }
     }
-    //The method describes a reading data from path(service JSON-file) and create RootInfo-Object  by it.
-    public static RootInfo parseFromJSON(Path path) throws IOException, ParseException {
+
+    private RootInfo parseByJSON(JSONObject jRoot) {
         RootInfo rootInfo = null;
-        try (Reader reader = Files.newBufferedReader(path)) {
-            JSONObject rootNode = IOutill.readJsonData(reader);
-            Path rootPath = IOutill.getPathProp(rootNode, ConstProps.ROOT_PATH);
-            rootInfo = new RootInfo(rootPath);
-            JSONArray jNodes = (JSONArray) rootNode.get(ConstProps.VERSIONS_INFO);
-            for (Object node : jNodes) {
-                JSONObject jNode = (JSONObject) node;
-                int hash = IOutill.getIntProp(jNode, ConstProps.HASH_CODE);
-                int version = IOutill.getIntProp(jNode, ConstProps.VERSION);
-                rootInfo.addNode(version, hash);
-            }
-
+        Path rootPath = JsonUtill.getPathProp(jRoot, ConstProps.ROOT_PATH);
+        rootInfo = new RootInfo(rootPath);
+        JSONArray jNodes = (JSONArray) jRoot.get(ConstProps.VERSIONS_INFO);
+        for (Object node : jNodes) {
+            var jNode = (JSONObject) node;
+            int hash = JsonUtill.getIntProp(jNode, ConstProps.HASH_CODE);
+            int version = JsonUtill.getIntProp(jNode, ConstProps.VERSION);
+            rootInfo.addNode(version, hash);
         }
-
         return rootInfo;
+    }
+
+    //The method describes a reading data from path(service JSON-file) and create RootInfo-Object  by it.
+    public static RootInfo load(Path path) throws IOException, ParseException {
+        JSONObject jRoot = null;
+        try (Reader reader = Files.newBufferedReader(path)) {
+            jRoot = JsonUtill.load(reader);
+        }
+        return new RootInfo(path.getParent()).parseByJSON(jRoot);
+
     }
 }
