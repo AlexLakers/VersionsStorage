@@ -111,7 +111,7 @@ public final class StorageManager {
 
                version = info.findVersionByHash(data.hashCode());
             } else {
-              IOUtill.writeString(ConstMsgs.SERVICE_FILE_NOT_FOUND);
+              IOUtill.writeString(String.format(ConstMsgs.SERVICE_FILE_NOT_FOUND,servicePath));
             }
         return version;
 
@@ -152,11 +152,11 @@ public final class StorageManager {
                     data = RootData.parseFromDB(dbPath);
                     changeRootData(data);
                 } else {
-                    IOUtill.writeString(ConstMsgs.CHANGES_NOT_FOUND);
+                    IOUtill.writeString(String.format(ConstMsgs.CHANGES_NOT_FOUND,rootPath));
                 }
 
             } else {
-                IOUtill.writeString(ConstMsgs.SERVICE_FILE_NOT_FOUND);
+                IOUtill.writeString(String.format(ConstMsgs.SERVICE_FILE_NOT_FOUND,servicePath));
             }
 
     }
