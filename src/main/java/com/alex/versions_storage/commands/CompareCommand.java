@@ -6,13 +6,19 @@ import org.json.simple.parser.ParseException;
 import java.io.IOException;
 import java.nio.file.Path;
 
-public class CompareCommand implements Command{
+public class CompareCommand extends StorageManagerCommand {
 
-    private Path path;
-    public CompareCommand(Path path){
-        this.path=path;
+
+    public CompareCommand(StorageManager manager) {
+        super(manager);
+
     }
-    public void execute()throws IOException, ParseException {
-        new StorageManager(path).compareData();
+
+    @Override
+    public void execute() throws IOException, ParseException {
+
+        getManager().compareData();
+
+
     }
 }

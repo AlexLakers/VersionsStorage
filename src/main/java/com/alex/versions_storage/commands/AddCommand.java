@@ -6,13 +6,16 @@ import org.json.simple.parser.ParseException;
 import java.io.IOException;
 import java.nio.file.Path;
 
-public class AddCommand implements Command {
+public class AddCommand extends StorageManagerCommand {
 
-    private Path path;
-    public AddCommand(Path path){
-        this.path=path;
+    public AddCommand(StorageManager manager) {
+        super(manager);
+
     }
-    public void execute()throws IOException, ParseException {
-        new StorageManager(path).addData();
+
+    @Override
+    public void execute()throws IOException,ParseException {
+            getManager().addData();
+
     }
 }

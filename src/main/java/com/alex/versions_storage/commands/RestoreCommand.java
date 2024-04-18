@@ -6,15 +6,21 @@ import org.json.simple.parser.ParseException;
 import java.io.IOException;
 import java.nio.file.Path;
 
-public class RestoreCommand implements Command {
-
-    private Path path;
+public class RestoreCommand extends StorageManagerCommand {
     private int version;
-    public RestoreCommand(Path path,int version){
-        this.path=path;
+
+
+    public RestoreCommand(StorageManager manager, int version) {
+        super(manager);
         this.version=version;
     }
-    public void execute()throws IOException, ParseException,ClassNotFoundException {
-        new StorageManager(path).restoreData(version);
+
+    @Override
+    public void execute()throws IOException,ParseException,ClassNotFoundException {
+            getManager().restoreData(version);
+
+
     }
+
+
 }

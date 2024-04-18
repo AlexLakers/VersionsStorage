@@ -5,13 +5,19 @@ import com.alex.versions_storage.provider.StorageManager;
 import java.io.IOException;
 import java.nio.file.Path;
 
-public class CreateCommand implements Command{
-    private Path path;
-    public CreateCommand(Path path){
-        this.path=path;
+public class CreateCommand extends StorageManagerCommand{
+
+
+    public CreateCommand(StorageManager manager) {
+        super(manager);
     }
+
+    @Override
     public void execute()throws IOException{
-    new StorageManager(path).createStorage();
+            getManager().createStorage();
+
+
     }
+
 
 }
