@@ -1,4 +1,5 @@
 package com.alex.versions_storage.storage;
+
 import com.alex.versions_storage.utill.JsonUtill;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -13,6 +14,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+
+//This class is additional part of storage that stores info about data of directory(version, hash,path)
 public class RootInfo {
     private Path rootPath;
     private List<Node> nodes;

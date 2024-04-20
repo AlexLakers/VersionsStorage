@@ -10,11 +10,12 @@ import java.nio.file.StandardOpenOption;
 import java.util.*;
 
 
+//This class is a main part of storage that stores data of directory
 public class RootData implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
-    private static final int DEFAULT_VERSION=1;
+    private static final int DEFAULT_VERSION = 1;
     private Map<String, byte[]> files;
     private transient List<Path> dirs;
     private transient Path path;
@@ -25,14 +26,15 @@ public class RootData implements Serializable {
         this.path = path;
         this.dirs = new ArrayList<>();
         this.files = new HashMap<>();
-        this.version=DEFAULT_VERSION;
+        this.version = DEFAULT_VERSION;
 
 
         collectFilesAndDirsByRecursive(path, (name) -> !name.endsWith(".VersionsStorage"));
     }
-    public RootData(Path path,int version)throws IOException{
+
+    public RootData(Path path, int version) throws IOException {
         this(path);
-        this.version=version;
+        this.version = version;
 
     }
 
@@ -99,9 +101,9 @@ public class RootData implements Serializable {
             while (iteratorPaths.hasNext()) {
                 Path path = iteratorPaths.next();
                 if (Files.isRegularFile(path)) {
-                    try(InputStream in=Files.newInputStream(path,StandardOpenOption.READ)){
-                        byte[] data= IOUtill.readBytes(in,1024);
-                        files.put(path.toString(),data);
+                    try (InputStream in = Files.newInputStream(path, StandardOpenOption.READ)) {
+                        byte[] data = IOUtill.readBytes(in, 1024);
+                        files.put(path.toString(), data);
                     }
 
                 } else {
@@ -120,7 +122,6 @@ public class RootData implements Serializable {
     }
 
 
-
     public List<Path> getDirs() {
         return Collections.unmodifiableList(dirs);
     }
@@ -136,10 +137,11 @@ public class RootData implements Serializable {
             return (RootData) in.readObject();
         }
     }
+
     //This method is used to save all the data from root directory to the database file.
     public void store(Path path) throws IOException {
 
-        try (OutputStream output = Files.newOutputStream(path,StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+        try (OutputStream output = Files.newOutputStream(path, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
              ObjectOutput out = new ObjectOutputStream(output)) {
             out.writeObject(this);
         }

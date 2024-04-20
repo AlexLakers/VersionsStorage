@@ -1,10 +1,10 @@
 package com.alex.versions_storage.commands;
 
-import com.alex.versions_storage.provider.StorageManager;
-import org.json.simple.parser.ParseException;
-
-import java.io.IOException;
-import java.nio.file.Path;
+import com.alex.versions_storage.StorageManagerCommand;
+import com.alex.versions_storage.service.StorageManager;
+import com.alex.versions_storage.exceptions.ExecutingException;
+import com.alex.versions_storage.exceptions.PathIncorrectException;
+import com.alex.versions_storage.exceptions.ServiceFileStructureException;
 
 public class RestoreCommand extends StorageManagerCommand {
     private int version;
@@ -12,14 +12,16 @@ public class RestoreCommand extends StorageManagerCommand {
 
     public RestoreCommand(StorageManager manager, int version) {
         super(manager);
-        this.version=version;
+        this.version = version;
     }
 
     @Override
-    public void execute()throws IOException,ParseException,ClassNotFoundException {
+    public void execute() throws ExecutingException {
+        try {
             getManager().restoreData(version);
-
-
+        } catch (ServiceFileStructureException | PathIncorrectException e) {
+            throw new ExecutingException("An Error restoring data has been detected:" + e.getMessage(), e);
+        }
     }
 
 

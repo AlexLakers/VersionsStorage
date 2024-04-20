@@ -1,9 +1,7 @@
 package com.alex.versions_storage.commands;
 
-import org.json.simple.parser.ParseException;
-
-import java.io.IOException;
+import com.alex.versions_storage.exceptions.ExecutingException;
 
 public interface Command {
-    void execute()throws IOException, ParseException,ClassNotFoundException;
+    void execute() throws ExecutingException;
 }
