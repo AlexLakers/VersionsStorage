@@ -9,7 +9,9 @@ import java.nio.file.Path;
 public class RestoreCommandParser implements CommandParser {
     @Override
     public Command parse(String line) {
-        String[] args = line.split(" ");//Maybe change just split+
+        if(line==null||line.isEmpty())throw new IllegalArgumentException("Argument must not be empty or null");
+        String[] args = line.split(" ");
+        if(args.length!=2)throw new IllegalArgumentException("You need to input two arguments");
         return new RestoreCommand(new StorageManager(Path.of(args[0])), Integer.parseInt(args[1]));
     }
 }

@@ -15,23 +15,20 @@ import com.alex.versions_storage.exceptions.PathIncorrectException;
 import com.alex.versions_storage.exceptions.ServiceFileStructureException;
 
 public final class StorageManager {
-
     public static class ConstNames {
         public static final String SERVICE_DIR_NAME = ".VersionsStorage";
         public static final String VERSIONS_FILE_NAME = "rootInfo.json";
         public static final String DB_NAME = "database_.dat";
 
     }
-
     public static class ConstMsgs {
         public static final String CHANGES_NOT_FOUND = "A checking directory [%1$s] doesn't have unhandled changes.";
         public static final String CHANGES_FOUND = "A checking directory [%1$s] has an unhandled changes.%nYou can use 'add' to save all the changes.";
         public static final String SERVICE_FILE_NOT_FOUND = "The service file [%1$s] doesn't exists.%nMaybe you didn't use 'create' action earlier";
         public static final String DATABASE_NOT_FOUND = "The database [%1$s] doesn't exists.";
-        public static final String CLASS_PATH_NOT_FOUND = "The class path is wrong.";
-        public static final String PATH_NOT_FOUND = "The path [%1$s] is not found.";
-        public static final String SERVICE_FILE_INVALID = "The service file [%1$s] have an incorrect structure";
-
+        public static final String CLASS_PATH_NOT_FOUND="The class path is wrong.";
+        public static final String PATH_NOT_FOUND="The path [%1$s] is not found.";
+        public static final String SERVICE_FILE_INVALID="The service file [%1$s] have an incorrect structure";
     }
 
     private RootInfo info;
@@ -39,15 +36,34 @@ public final class StorageManager {
     private final Path rootPath;
     private final Path servicePath;
     private final Path infoPath;
+    private FactoryHelper factoryHelper;
 
 
     public StorageManager(Path rootPath) {
         this.rootPath = rootPath;
         this.servicePath = rootPath.resolve(ConstNames.SERVICE_DIR_NAME);
         this.infoPath = servicePath.resolve(ConstNames.VERSIONS_FILE_NAME);
+        this.factoryHelper=new FactoryHelper();
+    }
+    public StorageManager(Path rootPath,FactoryHelper factoryHelper){
+        this(rootPath);
+        this.factoryHelper = factoryHelper;
+    }
+    static class FactoryHelper{
+        RootInfo createRootInfo(Path rootPath){
+            return new RootInfo(rootPath);
+        }
+        RootData createRootData(Path rootPath,String serviceDir)throws IOException{
+            return new RootData(rootPath,serviceDir);
+        }
+        RootInfo loadRootInfo(Path path)throws IOException,ParseException{
+            return RootInfo.loadFromFile(path);
+        }
+        RootData loadRootData(Path path)throws IOException,ClassNotFoundException{
+            return RootData.loadFromDB(path);
+        }
 
     }
-
 
     //This method changes the source data in the target root directory.
     private void changeRootData(RootData dir) throws IOException {
@@ -74,7 +90,6 @@ public final class StorageManager {
                 }
             }
         }
-
     }
 
     //This method creates a Service directory if it doesn't exist.
@@ -85,18 +100,15 @@ public final class StorageManager {
             if (Files.notExists(servicePath)) {
                 Files.createDirectory(servicePath);
             }
-            //create
-            data = new RootData(rootPath);
-            info = new RootInfo(rootPath);
+            data= factoryHelper.createRootData(rootPath,ConstNames.SERVICE_DIR_NAME);
+            info= factoryHelper.createRootInfo(rootPath);
 
-            //store
-            info.addNode(data.getVersion(), data.hashCode());
+            info.addNode(data.getVersion(), data.getHashCode());
             data.store(newPathDBbyVersion(data.getVersion()));
             info.store(infoPath);
         } catch (IOException ioExc) {
-            throw new PathIncorrectException(String.format(ConstMsgs.PATH_NOT_FOUND), ioExc);
+            throw new PathIncorrectException(String.format(ConstMsgs.PATH_NOT_FOUND,rootPath), ioExc);
         }
-
     }
 
 
@@ -115,19 +127,20 @@ public final class StorageManager {
     private int compareDataByHash(Path rootPath, Path infoPath) throws PathIncorrectException, ServiceFileStructureException {
         try {
             if (Files.exists(infoPath) && Files.exists(rootPath)) {
-                data = new RootData(rootPath);
-                info = RootInfo.load(infoPath);
-                return info.findVersionByHash(data.hashCode());
+
+                data=factoryHelper.createRootData(rootPath,ConstNames.SERVICE_DIR_NAME);
+                info = factoryHelper.loadRootInfo(infoPath);
+
+                return info.findVersionByHash(data.getHashCode());
             } else {
-                throw new PathIncorrectException(String.format(ConstMsgs.SERVICE_FILE_NOT_FOUND, infoPath));
+                throw new PathIncorrectException(String.format(ConstMsgs.SERVICE_FILE_NOT_FOUND,infoPath));
             }
         } catch (IOException ioExc) {
-            throw new PathIncorrectException(String.format(ConstMsgs.PATH_NOT_FOUND), ioExc);
+            throw new PathIncorrectException(String.format(ConstMsgs.PATH_NOT_FOUND,rootPath), ioExc);
         } catch (ParseException parseExc) {
-            throw new ServiceFileStructureException(String.format(ConstMsgs.SERVICE_FILE_INVALID, infoPath), parseExc);
+            throw new ServiceFileStructureException(String.format(ConstMsgs.SERVICE_FILE_INVALID,infoPath), parseExc);
         }
     }
-
 
     //If a root directory and service json-file exists.Then this method reads all the structure of directories and nested data from the root directory.
     // And then the data is saved to database file.Specific information such as a number of version and hashCode are saved to service json-file.
@@ -135,20 +148,20 @@ public final class StorageManager {
         try {
             int result = compareDataByHash(rootPath, infoPath);
             if (result > 0) {
-                IOUtill.writeString(String.format(ConstMsgs.CHANGES_NOT_FOUND, rootPath));
-            } else {
-                int version = info.getLastVersionDir();
-                info.addNode(version, data.hashCode());
+                IOUtill.writeString(String.format(ConstMsgs.CHANGES_NOT_FOUND,rootPath));
+            }
+            else {
+                int version = info.getLastVersionDir()+1;
+
+                info.addNode(version, data.getHashCode());
                 info.store(infoPath);
                 data.store(newPathDBbyVersion(version));
             }
         } catch (IOException ioExc) {
-            throw new PathIncorrectException(String.format(ConstMsgs.PATH_NOT_FOUND, rootPath), ioExc);
-
+            throw new PathIncorrectException(String.format(ConstMsgs.PATH_NOT_FOUND,rootPath), ioExc);
         }
 
     }
-
 
     //If a service json-file and the database file exist.Then this method reads all the structure of directories and nested data from the root directory.
     // After it the data is compared with the data from service json-file.
@@ -156,36 +169,26 @@ public final class StorageManager {
     // will be saved in root directory with changes.
     public void restoreData(int version) throws PathIncorrectException, ServiceFileStructureException {
         Path dbPath = newPathDBbyVersion(version);
-
         try {
             if (Files.exists(dbPath) && Files.exists(infoPath)) {
-                info = RootInfo.load(infoPath);
+                info=factoryHelper.loadRootInfo(infoPath);
 
                 if (info.isVersionExist(version)) {
-                    data = RootData.parseFromDB(dbPath);
+                    data=factoryHelper.loadRootData(dbPath);
                     changeRootData(data);
                 } else {
-                    IOUtill.writeString(ConstMsgs.CHANGES_NOT_FOUND);
+                    IOUtill.writeString(String.format(ConstMsgs.CHANGES_NOT_FOUND,rootPath));
                 }
-
             } else {
-                String message = String.format(ConstMsgs.DATABASE_NOT_FOUND, dbPath);
-                throw new PathIncorrectException(message);
+                throw new PathIncorrectException(String.format(ConstMsgs.DATABASE_NOT_FOUND, dbPath));
             }
         } catch (ClassNotFoundException cnfe) {
             throw new PathIncorrectException(ConstMsgs.CLASS_PATH_NOT_FOUND, cnfe);
-
         } catch (IOException ioExc) {
-            throw new PathIncorrectException(String.format(ConstMsgs.PATH_NOT_FOUND, rootPath.toString()), ioExc);
-
+            throw new PathIncorrectException(String.format(ConstMsgs.PATH_NOT_FOUND,rootPath), ioExc);
         } catch (ParseException parseExc) {
-            throw new ServiceFileStructureException(infoPath.toString(), parseExc);
+            throw new ServiceFileStructureException(String.format(ConstMsgs.SERVICE_FILE_INVALID,infoPath), parseExc);
         }
-    }
-
-
-    public String toString() {
-        return rootPath.toString();
     }
 
     //This function allows to form a new name of database by version of root directory.
@@ -198,8 +201,6 @@ public final class StorageManager {
         Path dbPath = servicePath.resolve(name.toString());
         return dbPath;
     }
-
-
 }
 
 

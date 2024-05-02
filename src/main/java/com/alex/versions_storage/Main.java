@@ -21,8 +21,6 @@ public class Main {
             }
         }
         while (action != Actions.EXIT);
-
-
     }
 
     private static Actions getAction() {
@@ -30,8 +28,6 @@ public class Main {
         Actions action = Actions.valueOf(line.split(" ")[0].trim());
         return action;
     }
-
-
 }
 
 

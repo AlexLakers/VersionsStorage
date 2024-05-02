@@ -10,7 +10,6 @@ public class AddCommand extends StorageManagerCommand {
 
     public AddCommand(StorageManager manager) {
         super(manager);
-
     }
 
     @Override

@@ -8,10 +8,8 @@ import com.alex.versions_storage.service.StorageManager;
 
 public class CompareCommand extends StorageManagerCommand {
 
-
     public CompareCommand(StorageManager manager) {
         super(manager);
-
     }
 
     @Override

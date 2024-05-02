@@ -10,7 +10,6 @@ import java.nio.file.StandardOpenOption;
 import java.util.*;
 
 
-//This class is a main part of storage that stores data of directory
 public class RootData implements Serializable {
 
     @Serial
@@ -22,20 +21,21 @@ public class RootData implements Serializable {
     private int version;
 
 
-    public RootData(Path path) throws IOException {
+    public RootData(Path path,String serviceDir) throws IOException {
         this.path = path;
         this.dirs = new ArrayList<>();
         this.files = new HashMap<>();
         this.version = DEFAULT_VERSION;
-
-
-        collectFilesAndDirsByRecursive(path, (name) -> !name.endsWith(".VersionsStorage"));
+        collectFilesAndDirsByRecursive(path, (name) -> !name.endsWith(serviceDir));
     }
 
-    public RootData(Path path, int version) throws IOException {
-        this(path);
+    public RootData(Path path, int version,String serviceDir) throws IOException {
+        this(path,serviceDir);
         this.version = version;
+    }
 
+    public int getHashCode() {
+        return this.hashCode();
     }
 
     public int getVersion() {
@@ -64,9 +64,7 @@ public class RootData implements Serializable {
             result *= (key == null) ? 0 : key.hashCode();
             result *= (val == null) ? 0 : Arrays.hashCode(val);
         }
-        System.out.println(result);
         return result;
-
     }
 
     @Serial
@@ -77,8 +75,6 @@ public class RootData implements Serializable {
         dirs = strPathsDirs.stream()
                 .map(Path::of)
                 .toList();
-
-
     }
 
     @Serial
@@ -89,11 +85,8 @@ public class RootData implements Serializable {
                 .map(Path::toString)
                 .toList();
         output.writeObject(strPathsDir);
-
-
     }
 
-    //This method allows to walk all the directories and collect files and dirs
     private void collectFilesAndDirsByRecursive(Path pathDir, DirectoryStream.Filter<Path> filter) throws IOException {
         List<Path> tempPaths = new ArrayList<>();
         try (DirectoryStream<Path> paths = Files.newDirectoryStream(pathDir, filter)) {
@@ -109,18 +102,13 @@ public class RootData implements Serializable {
                 } else {
                     tempPaths.add(path);
                 }
-
             }
         }
-
         dirs.addAll(tempPaths);
-
         for (Path path : tempPaths) {
             collectFilesAndDirsByRecursive(path, filter);
-
         }
     }
-
 
     public List<Path> getDirs() {
         return Collections.unmodifiableList(dirs);
@@ -131,10 +119,11 @@ public class RootData implements Serializable {
     }
 
     //The method describes a reading data from path(database-file) and create RootDir-Object by it.
-    public static RootData parseFromDB(Path path) throws IOException, ClassNotFoundException {
+    public static RootData loadFromDB(Path path) throws IOException, ClassNotFoundException {
         try (InputStream input = Files.newInputStream(path, StandardOpenOption.READ);
              ObjectInputStream in = new ObjectInputStream(input)) {
             return (RootData) in.readObject();
+
         }
     }
 

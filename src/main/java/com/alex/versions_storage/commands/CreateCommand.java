@@ -7,7 +7,6 @@ import com.alex.versions_storage.exceptions.PathIncorrectException;
 
 public class CreateCommand extends StorageManagerCommand {
 
-
     public CreateCommand(StorageManager manager) {
         super(manager);
     }

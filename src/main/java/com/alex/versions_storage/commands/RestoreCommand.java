@@ -9,7 +9,6 @@ import com.alex.versions_storage.exceptions.ServiceFileStructureException;
 public class RestoreCommand extends StorageManagerCommand {
     private int version;
 
-
     public RestoreCommand(StorageManager manager, int version) {
         super(manager);
         this.version = version;

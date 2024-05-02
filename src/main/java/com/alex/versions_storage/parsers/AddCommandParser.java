@@ -9,7 +9,8 @@ import java.nio.file.Path;
 public class AddCommandParser implements CommandParser {
     @Override
     public Command parse(String line) {
-        String[] args = line.split(" ");//Maybe change just split+
+        if(line==null||line.isEmpty())throw new IllegalArgumentException("Argument must not be empty or null");
+        String[] args = line.split(" ");
         return new AddCommand(new StorageManager(Path.of(args[0])));
     }
 }

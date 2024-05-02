@@ -5,18 +5,12 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
-
-//This class is additional part of storage that stores info about data of directory(version, hash,path)
-public class RootInfo {
+public class RootInfo{
     private Path rootPath;
     private List<Node> nodes;
 
@@ -27,18 +21,16 @@ public class RootInfo {
         private static final String HASH_CODE = "hashCode";
     }
 
-
     public RootInfo(Path rootPath) {
         this.rootPath = rootPath;
         nodes = new ArrayList<>();
-
     }
 
     private class Node {
         private int hashCode;
         private int version;
 
-        Node(int version, int hashCode) {
+        public Node(int version, int hashCode) {
             this.hashCode = hashCode;
             this.version = version;
         }
@@ -46,16 +38,10 @@ public class RootInfo {
         public String toString() {
             return String.format("{\"hashCode\":%1$d,\"version\":%2$d}", hashCode, version);
         }
-
-        private Node parse(JSONObject jNode) {
-            int hash = JsonUtill.getIntProp(jNode, ConstProps.HASH_CODE);
-            int version = JsonUtill.getIntProp(jNode, ConstProps.VERSION);
-            return new Node(hash, version);
-        }
     }
 
     public String toJSONString() {
-        return String.format("{\"rootPath\":\"%1$s\", \"versionsInfo\":%2$s}", rootPath.toString(), nodes.toString());
+        return String.format("{\"rootPath\":\"%1$s\",\"versionsInfo\":%2$s}", rootPath.toString(), nodes.toString());
     }
 
     public List<Node> getNodes() {
@@ -63,17 +49,15 @@ public class RootInfo {
     }
 
     public int getLastVersionDir() {
-        return nodes.get(nodes.size() - 1).version + 1;
+        return nodes.get(nodes.size() - 1).version;
     }
 
-
     public void addNode(int version, int hashCode) {
+        if (version <= 0) throw new IllegalArgumentException("You try to add a negative version");
         nodes.add(new Node(version, hashCode));
     }
 
-
     public int findVersionByHash(int hc) {
-        System.out.println(hc);
         for (var node : nodes) {
             if (node.hashCode == hc) return node.version;
         }
@@ -111,12 +95,11 @@ public class RootInfo {
     }
 
     //The method describes a reading data from path(service JSON-file) and create RootInfo-Object  by it.
-    public static RootInfo load(Path path) throws IOException, ParseException {
+    public static RootInfo loadFromFile(Path path) throws IOException, ParseException {
         JSONObject jRoot = null;
         try (Reader reader = Files.newBufferedReader(path)) {
             jRoot = JsonUtill.load(reader);
         }
         return new RootInfo(path.getParent()).parseByJSON(jRoot);
-
     }
 }

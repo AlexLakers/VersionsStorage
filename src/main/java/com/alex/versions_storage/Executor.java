@@ -10,9 +10,7 @@ import java.util.Map;
 
 //This class allow us to execute any command
 public final class Executor {
-
     private Executor() {
-
     }
 
     static Map<Actions, CommandParser> parsers;
@@ -29,6 +27,5 @@ public final class Executor {
         CommandParser parser = parsers.get(action);
         Command command = parser.parse(IOUtill.readWithMessage("Enter args:"));
         command.execute();
-
     }
 }
