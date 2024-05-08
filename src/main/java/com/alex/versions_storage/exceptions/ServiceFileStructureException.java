@@ -1,7 +1,9 @@
 package com.alex.versions_storage.exceptions;
 
-
-//Exception describes invalid structure of service file(json)
+/**
+ * It describes an exception that will throw during executing some command
+ * if the version storage(rootInfo.json) has an incorrect structure.
+ */
 public class ServiceFileStructureException extends Exception {
     public ServiceFileStructureException(String message) {
         super(message);

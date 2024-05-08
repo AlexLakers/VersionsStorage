@@ -4,9 +4,7 @@ import com.alex.versions_storage.exceptions.ExecutingException;
 import com.alex.versions_storage.utill.IOUtill;
 
 
-
 public class Main {
-
     public static void main(String[] args) {
         Actions action = null;
         do {

@@ -10,6 +10,9 @@ import java.nio.file.StandardOpenOption;
 import java.util.*;
 
 
+/**
+ * It describes the main part of versions storage - database.dat.
+ */
 public class RootData implements Serializable {
 
     @Serial
@@ -20,8 +23,16 @@ public class RootData implements Serializable {
     private transient Path path;
     private int version;
 
-
-    public RootData(Path path,String serviceDir) throws IOException {
+    /**
+     * Creates a new RootData with path to root directory and service directory name.
+     * During creating occurs the recursive filling {@link #files files list} and {@link #dirs dirs list}
+     * It occurs with using {@link #collectFilesAndDirsByRecursive(Path, DirectoryStream.Filter) CollectFilesAndDirsByRecursive}.
+     *
+     * @param path       root directory path.
+     * @param serviceDir service directory name.
+     * @throws IOException if path to selected root directory is not found or other IO errors have been detected.
+     */
+    public RootData(Path path, String serviceDir) throws IOException {
         this.path = path;
         this.dirs = new ArrayList<>();
         this.files = new HashMap<>();
@@ -29,8 +40,16 @@ public class RootData implements Serializable {
         collectFilesAndDirsByRecursive(path, (name) -> !name.endsWith(serviceDir));
     }
 
-    public RootData(Path path, int version,String serviceDir) throws IOException {
-        this(path,serviceDir);
+    /**
+     * Creates new RootData with path to root directory,specific version root directory and service directory name.
+     *
+     * @param path       root directory path.
+     * @param serviceDir service directory name.
+     * @throws IOException if path to selected root directory is not found or other IO errors have been detected.
+     * @see RootData#RootData(Path, String) new RootData(Path,String).
+     */
+    public RootData(Path path, int version, String serviceDir) throws IOException {
+        this(path, serviceDir);
         this.version = version;
     }
 
@@ -41,7 +60,6 @@ public class RootData implements Serializable {
     public int getVersion() {
         return version;
     }
-
 
     public boolean equals(Object o) {
         if (o == this) return true;
@@ -65,6 +83,7 @@ public class RootData implements Serializable {
             result *= (val == null) ? 0 : Arrays.hashCode(val);
         }
         return result;
+
     }
 
     @Serial
@@ -75,6 +94,8 @@ public class RootData implements Serializable {
         dirs = strPathsDirs.stream()
                 .map(Path::of)
                 .toList();
+
+
     }
 
     @Serial
@@ -85,8 +106,16 @@ public class RootData implements Serializable {
                 .map(Path::toString)
                 .toList();
         output.writeObject(strPathsDir);
+
     }
 
+    /**
+     * Performs a recursive filling {@link #files files list} and {@link #dirs dirs list}.
+     *
+     * @param pathDir path to selected root directory.
+     * @param filter  service directory name.
+     * @throws IOException if path to selected root directory is not found or other IO errors have been detected.
+     */
     private void collectFilesAndDirsByRecursive(Path pathDir, DirectoryStream.Filter<Path> filter) throws IOException {
         List<Path> tempPaths = new ArrayList<>();
         try (DirectoryStream<Path> paths = Files.newDirectoryStream(pathDir, filter)) {
@@ -98,17 +127,19 @@ public class RootData implements Serializable {
                         byte[] data = IOUtill.readBytes(in, 1024);
                         files.put(path.toString(), data);
                     }
-
                 } else {
                     tempPaths.add(path);
                 }
             }
         }
+
         dirs.addAll(tempPaths);
+
         for (Path path : tempPaths) {
             collectFilesAndDirsByRecursive(path, filter);
         }
     }
+
 
     public List<Path> getDirs() {
         return Collections.unmodifiableList(dirs);
@@ -118,16 +149,27 @@ public class RootData implements Serializable {
         return Collections.unmodifiableMap(files);
     }
 
-    //The method describes a reading data from path(database-file) and create RootDir-Object by it.
+    /**
+     * Returns a new RootData from version storage(database.dat) with path to it.
+     *
+     * @param path - path to database.dat
+     * @return new RootData.
+     * @throws IOException            if path to version storage(database.dat) is not found or other IO errors have been detected.
+     * @throws ClassNotFoundException if class is not found during compile.
+     */
     public static RootData loadFromDB(Path path) throws IOException, ClassNotFoundException {
         try (InputStream input = Files.newInputStream(path, StandardOpenOption.READ);
              ObjectInputStream in = new ObjectInputStream(input)) {
             return (RootData) in.readObject();
-
         }
     }
 
-    //This method is used to save all the data from root directory to the database file.
+    /**
+     * Performs the saving(serialising) all the data from selected root directory to version storage(database.dat).
+     *
+     * @param path path to database.dat
+     * @throws IOException if path to version storage(database.dat) is not found or other IO errors have been detected.
+     */
     public void store(Path path) throws IOException {
 
         try (OutputStream output = Files.newOutputStream(path, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);

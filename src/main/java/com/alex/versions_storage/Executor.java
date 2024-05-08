@@ -8,8 +8,11 @@ import com.alex.versions_storage.utill.IOUtill;
 import java.util.Map;
 
 
-//This class allow us to execute any command
+/**
+ * The executor allows you to run one of the actions that are defined in the {@link Actions actions}.
+ */
 public final class Executor {
+
     private Executor() {
     }
 
@@ -20,12 +23,30 @@ public final class Executor {
                 Actions.CREATE, new CreateCommandParser(),
                 Actions.COMPARE, new CompareCommandParser(),
                 Actions.ADD, new AddCommandParser(),
-                Actions.RESTORE, new RestoreCommandParser());
+                Actions.RESTORE, new RestoreCommandParser()
+        );
     }
 
+    /**
+     * Performs one of the defined actions with using a specific{@link Actions action}.
+     * Firstly occurs a search for a specific realisation of {@link CommandParser CommandParser} by a transmitted action.
+     * And then occurs the parsing a specific{@link Command command} and executing it.
+     * If the command equals 'exit' then parsing process will be skipped.
+     *
+     * @param action specific action.
+     * @throws ExecutingException if some error has been detected (during executing).
+     * @see CommandParser CommandParser
+     * @see Command Command
+     */
     public static void run(Actions action) throws ExecutingException {
-        CommandParser parser = parsers.get(action);
-        Command command = parser.parse(IOUtill.readWithMessage("Enter args:"));
+        Command command = null;
+        if (action != Actions.EXIT) {
+            CommandParser parser = parsers.get(action);
+            command = parser.parse(IOUtill.readWithMessage("Enter args:"));
+        } else {
+            command = new ExitCommand();
+        }
         command.execute();
+
     }
 }
