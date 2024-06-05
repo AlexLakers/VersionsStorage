@@ -68,5 +68,9 @@ Ok,now we can restore data which contains in the srdir.For example,we try to res
 Performs restoring command(RESTORE) and we can see that file1.txt contains the string "some text" again.
 
 > [!IMPORTANT]
->In this project I used the additional lib that helps me to work with .JSON:
-> com.googlecode.json-simple https://mvnrepository.com/artifact/com.googlecode.json-simple/json-simple
+>In this project I used the additional libs: for working with .JSON and JUNIT5 for tests:
+> - com.googlecode.json-simple https://mvnrepository.com/artifact/com.googlecode.json-simple/json-simple
+> - "Mockito JUnit Jupiter"          https://mvnrepository.com/artifact/org.mockito/mockito-junit-jupiter
+> - "JUnit Jupiter Engine"           https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine
+> - "JUnit Jupiter Params"           https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-params
+> - "Mockito Core"                   https://mvnrepository.com/artifact/org.mockito/mockito-core
